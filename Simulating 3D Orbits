@@ -1,0 +1,71 @@
+import numpy as np
+import vpython
+
+def Binary_star_system(m1,m2,R,m3,R2):
+    u = (m1*m2)/(m1+m2)
+    
+    
+    r1 = m2*R/(m2+m1)
+    r2 = m1*R/(m2+m1)
+    r3 = u*R2/(u +m3)
+    #r3 = m3*R2/(m3+m1)
+    v1 = sqrt(G*m2*r1/R**2)
+    v2 = sqrt(G*m1*r2/R**2)
+    v3 = sqrt(G*u/R2)
+    #v3 = sqrt(G*m1*r3/R2**2)
+    #r1 = m2*R/(m2+m1)+m3*R2/(m1+m3)
+    #r2 = m1*R/(m2 + m1)+m3*R2/(m2+m3)
+    #r3 = m1*R2/(m3 + m1)+m2*R/(m2+m3)
+    #v1 = sqrt(G*m2*r1/R**2)+(G*m3*r1/R2**2)
+    #v2 = sqrt(G*m1*r2/R**2)+(G*m3*r2/R2**2)
+    #v3 = sqrt(G*u/R2)
+
+    
+    star1 = sphere(pos = vector(r1,0,0,), radius = R/8, color = color.yellow, make_trail = True)
+    star2 = sphere(pos = vector(r2,0,0), radius = R/10, color = color.blue, make_trail = True)
+    planet = sphere(pos = vector(r3,0,0), radius = R/10, color = color.red, make_trail = True)
+    star1.p = m1*vector(0,v1,0)
+    star2.p = m2*vector(0,-v2,0)
+    planet.p = m3*vector(0,v3,0)
+
+    t = 0
+    dt = 1000
+
+    while (t<20e7):
+        rate(6000)
+        r12 = star2.pos - star1.pos
+        r1p = planet.pos - star1.pos
+        r2p = planet.pos - star2.pos
+        #rp = planet.pos 
+        F12 = -G*m1*m2*norm(r12)/mag(r12)**2
+        F1p = -G*m1*m3*norm(r1p)/mag(r1p)**2
+        F2p = -G*m2*m3*norm(r2p)/mag(r2p)**2
+        #F = -G*m1*m2*norm(r)/mag(r)**2
+        #Fp = -G*u*m3*norm(rp)/mag(rp)**2
+        star1.p = star1.p + (-F12-F1p)*dt
+        star2.p = star2.p + (F12-F2p)*dt
+        planet.p = planet.p + (F1p+F2p)*dt
+        #star2.p = star2.p + F1p*dt
+        #star1.p = star1.p - F2p*dt
+        #planet.p = planet.p - F12*dt
+        star1.pos = star1.pos + star1.p*dt/m1
+        star2.pos = star2.pos + star2.p*dt/m2
+        planet.pos = planet.pos + planet.p*dt/m3
+        t = t+dt
+    R2_m = R2*1.5e11
+    u_kg = u*2e30
+    m3_kg = m3*2e30
+    d = 4*(R2_m**3)*(pi)**2
+    b = G*(u_kg + m3_kg)
+    P = (d/b)**(1/2)
+    #velocities
+    v_planet = (R2_m*2*pi)/P
+    
+    print( 'm1 =',m1, ', m2 =',m2, ', R =',R, ', m3 =',m3, ', R2 =',R2)
+    print('Period =', P,'seconds'), print('Period =',P/86400 ,'days'), print('Period =',P/31557600 ,'years'), print('Velocity of planet =',v_planet,'m/s')
+    
+Binary_star_system(2e30,6e30, 1.5e11, 6e23,8e11)
+
+#3rd mass seems most unstable - might need to change r3 and v3
+#3rd mass (red sphere) either goes straight into star, or unstable orbit
+#2nd and 1st mass act like planet and star when masses are different - act like binary when similar masses
